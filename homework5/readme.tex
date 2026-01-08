@@ -1,0 +1,130 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{ctex}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage[english]{babel}
+
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    numbersep=5pt,
+    frame=single,
+    breaklines=true,
+    backgroundcolor=\color{white},
+    tabsize=4,
+    captionpos=b
+}
+
+\title{Homework5}
+\author{袁健 \qquad 23307110123}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\section{Problem1:\quad five-point formula for $f''(x)$}
+\subsection{problem description}
+Derive the five-point formula for the second-order derivative $f''(x)$.
+
+\subsection{Proof}
+with centered difference method, we have:
+\begin{equation}
+    \begin{cases}
+        f(x+2h)+f(x-2h)-2f(x)&=4h^2f''(x)+\frac{16h^4}{24}f^{(4)}(x)+O(h^6)\\
+        f(x+h)+f(x-h)-2f(x)&=h^2f''(x)+\frac{h^4}{24}f^{(4)}(x)+O(h^6)\\
+    \end{cases}
+\end{equation}
+In order to eliminate $f^{(4)}(x)$, we multiply the second equation by -16 and add it to the first equation,which gives:
+\begin{equation}
+    f(x+2h)-16f(x+h)+30f(x)-16f(x-h)+f(x-2h)=-12h^2f''(x)+O(h^6)
+\end{equation}
+so we have the five-point formula for the second-order derivative:
+\begin{equation}
+    f''(x)=\frac{-f(x+2h)+16f(x+h)-30f(x)+16f(x-h)-f(x-2h)}{12h^2}+O(h^4)
+\end{equation}
+
+\section{Problem2:\quad Romberg Integration}
+\subsection{problem description}
+Compute integration of $f(x)=\exp(-x^2)$ from 0 to 1 using Romberg Integration, using at least 4 layers of extrapolation to compute and analyze the error.
+\subsection{algorithm description}
+Romberg integration  computes a sequence of trapezoidal approximations with equal $2^k$ subdivisions of the integration interval, and then use Richardson extrapolation to eliminate leading-order error terms.
+\begin{equation}
+    \int_{a}^{b}dx f(x) \approx R(i,0)=\frac{b-a}{2^{i+1}}\left[f(a)+f(b)+2\sum_{n=1}^{2^i-1}f\left(a+n\frac{b-a}{2^i}\right)\right]
+\end{equation}
+and we can compute higher-order estimates recursively :
+\begin{equation}
+    R(i,k)=\frac{4^k R(i,k-1)-R(i-1,k-1)}{4^k-1}
+\end{equation}
+where $R(i,k)$ is the k-th extrapolated value at level i.
+\subsection{output}
+run \texttt{problem2.py}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{pic/p1.png}
+    \caption{output of Romberg Integration}
+\end{figure}
+
+\section{Problem3:\quad }
+\subsection{problem description}
+Radial wave function of the 3s orbital is: 
+\begin{equation}
+    R_{3s}(r) = \frac{1}{9\sqrt{3}}\,(6 - 6\rho + \rho^{2})\,Z^{3/2}\,e^{-\rho/2}
+\end{equation}
+\begin{enumerate}
+    \item r = radius expressed in atomic units (1 Bohr radius = 52.9 pm)
+    \item e = 2.71828 approximately.
+    \item Z = effective nuclear charge for that orbital in that atom.
+    \item $\rho$= $2\frac{Zr}{n}$, where n is the principal quantum number (3 for the 3s orbital)
+\end{enumerate}
+
+Compute $\displaystyle \int_{0}^{40}|R_{3s}(r)|^2r^2dr$  for Si atom (Z=14) with Simpson's rule using two different radial grids:
+
+(1)Equal spacing grids: $r[i]=(i-1)h$; i = 1,...,N (try different N)
+
+(2)A nonuniform integration grid, more finely spaced at small r than at large r: $r[i] = r_0 (e^{t[i]}-1)$; $t[i]=(i-1)h$; i = 1, ..., N (One typically choose $r_0$ = 0.0005 a.u., try different N).
+
+(3)Find out which one is more efficient, and discuss the reason.
+
+\subsection{algorithm description}
+(1) For uniform grid $r[i]=(i-1)h$; i = 1,...,N , we use Simpson's rule, so N must be odd:
+\begin{equation}
+    \int_{a}^{b}f(x)dx \approx \frac{h}{3}\sum_{i=1}^{N-2}\left[f(x_i)+4f(x_{i+1})+f(x_{i+2})\right],\quad h=\frac{b-a}{N-1}
+\end{equation}
+we can thus compute the integral directly.
+
+(2) For non-uniform grid $r[i] = r_0 (e^{t[i]}-1)$; $t[i]=(i-1)h$; i = 1, ..., N , notice that $t[i]=(i-1)h$ is uniform, we can use the change of variable to convert the integral:
+\begin{equation}
+    \int_{0}^{40}|R_{3s}(r)|^2r^2dr = \int_{t(1)}^{t(N)}|R_{3s}(r(t))|^2r(t)^2\frac{dr}{dt}dt
+\end{equation}
+where $\displaystyle \frac{dr}{dt} = r_0 e^{t}$. we can then use Simpson's rule (equation (7)) to compute the integral over t, since t is a uniform grid.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{pic/p3.png}
+    \caption{Integral function $|R_{3s}(r)|^2r^2$}
+\end{figure}
+
+\subsection{output}
+run \texttt{problem3.py}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{pic/p3output.png}
+    \caption{output of uniform and non-uniform grid integration}
+\end{figure}
+
+Analysis: By comparing the results of the two methods with different N, we can find out nonuniform method is more efficient.
+
+This is because the radial wave function changes rapidly at small r in [0,2] (shown in Figure 2) and slowly at large r, so using a nonuniform grid that is more finely spaced at small r can capture the behavior of the function more accurately, leading to better integration results than uniform grid with the same N points.
+\end{document}

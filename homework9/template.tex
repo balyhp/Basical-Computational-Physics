@@ -1,0 +1,99 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{ctex}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    numbersep=5pt,
+    frame=single,
+    breaklines=true,
+    backgroundcolor=\color{white},
+    tabsize=4,
+    captionpos=b
+}
+
+\title{Homework 9}
+\author{袁健 \qquad 23307110123}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Problem1:\quad Volume of hypersphere using MC}
+\subsection{problem description}
+The interior of a d-dimensional hypersphere of unit radius is defined by the condition $x_1^2+x_2^2+\cdots +x_d^2 \leq 1$. Write a program that finds the volume of a hypersphere using a Monte Carlo method. Test your program for d=2 and d=3 and then calculate the volume for d=4 and d=5, compare your results with the exact results. 
+
+\subsection{algorithm description}
+
+First generate uniform random points in $[-1,1)$ for each dimension $x_i$ with Linear Congruential Generator.
+\begin{equation}
+    M_i = (aM_{i-1}+c) \mod m
+\end{equation}
+we simply choose a initial $M_0$, and then generate a sequence of pseudo-random integers $M_i$. The parameters are chosen such that $m$ is a large prime number, $a$ is a small integer, and $c$ is an integer relatively prime to $m$. The random number in $[0,1)$ can be obtained by dividing $M_i$ by $m$. 
+
+Then get $x_i = 2Y_i-1 \in [-1,1)$ from the uniform distribution $Y_i \in [0,1)$ ,check if the point lies within the hypersphere by evaluating the condition $x_1^2+x_2^2+\cdots +x_d^2 \leq 1$. Count the number of points that satisfy this condition and divide it by the total number of points generated. 
+
+The exact volume $V_d$ of a d-dimensional hypersphere of radius r is given by the formula:
+\begin{equation}
+V_d = \frac{\pi^{d/2}}{\Gamma(\frac{d}{2}+1)} r^d
+\end{equation}
+where $\Gamma$ is the Gamma function. In my code, I use \texttt{math.gamma()} to calculate the Gamma function value.
+
+\subsection{output} 
+run \texttt{problem1.py}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{pic/p1.png}
+    \caption{Volume of hypersphere}
+\end{figure}
+
+\section{Problem2:\quad 3D Heisenberg model MC}
+\subsection{problem description}
+Write a MC code for a 3D Face-Centered Cubic lattice using the Heisenberg spin model (adopt periodic boundary condition and only consider nearest neighbour interaction). Estimate the ferromagnetic Curie temperature $T_c$. 
+\begin{equation}
+H=-J\sum_{\langle ij \rangle}\vec{S_i}\cdot \vec{S_j} \quad J=1, \quad |\vec{S_i}|=1
+\end{equation}
+\subsection{ algorithm description}
+Metropolis algorithm is used to simulate the Heisenberg model on a 3D Face-Centered Cubic (FCC) lattice. The key steps of the algorithm are as follows:
+\begin{itemize}
+    \item \textbf{Lattice Initialization:} Create a 3D supercell FCC lattice of size $L\times L\times L$ with periodic boundary conditions. Each lattice site contains a spin vector $\vec{S_i}$ initialized randomly on the unit sphere with uniform distribution.
+    \item \textbf{Monte Carlo Steps:} For each Monte Carlo step, randomly select a lattice site and propose a new spin orientation by generating a random vector on the unit sphere.Calculate the change in energy $\Delta E$ due to the proposed spin change using the Hamiltonian:
+    \begin{equation}
+        \Delta E = -J \sum_{\langle ij \rangle} (\vec{S_i'} - \vec{S_i}) \cdot \vec{S_j}
+    \end{equation}
+    where $\vec{S_i'}$ is the proposed new spin and the sum is over nearest neighbors, 12 in total.
+    \item \textbf{Acceptance Criterion:} Accept the proposed spin change with probability:
+    \begin{equation}
+        P = \text{min} \{u, e^{-\Delta E / k_B T}\}
+    \end{equation}
+    where $k_B$ is the Boltzmann constant and $T$ is the temperature.$u$ is a uniform random number in $[0,1)$.
+    \item \textbf{Measurement:} After reaching equilibrium, measure physical quantities such as magnetization, specific heat $C_v$, and magnetic susceptibility $\chi$ by sampling over many Monte Carlo steps.
+     Repeat the above steps for a range of temperatures to observe phase transitions and estimate the Curie temperature $T_c$.
+\end{itemize}
+
+\subsection{output} 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{pic/phase_transition.png}
+    \caption{$C_v$ and Magnetic susceptibility $\chi$ vs Temperature}
+\end{figure}
+It can be seen from the figure that $C_v$ and $\chi$ both show a unstable peak at around $T=3.1$, indicating the transition temperature $T_c \approx 3.1  k_B^{-1}$.
+
+\end{document}

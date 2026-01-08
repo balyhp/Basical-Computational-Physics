@@ -1,0 +1,198 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{ctex}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage[english]{babel}
+
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    numbersep=5pt,
+    frame=single,
+    breaklines=true,
+    backgroundcolor=\color{white},
+    tabsize=4,
+    captionpos=b
+}
+
+\title{Homework8}
+\author{袁健 \qquad 23307110123}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\section{Problem1:\quad Relaxation method }
+\subsection{problem description}
+Consider the Poisson equation:
+\begin{equation}
+    \nabla^2 \varphi(x,y)  = -\rho(x,y)/\epsilon_0
+\end{equation}
+from electrostatics on a rectangular geometry with $x \in [0,L_x]$ and $y \in [0,L_y]$. Write a program that solves this equation using the relaxation method. Test your program with:
+
+\noindent(a)\quad$
+\rho(x,y)=0,
+\varphi(0,y)=\varphi(L_x,y)=\varphi(x,0)=0,
+\varphi(x,L_y)=1~\mathrm{V},
+L_x=1~\mathrm{m},\text{and } L_y=1.5~\mathrm{m}.
+$
+
+\noindent(b)\quad$
+\frac{\rho(x,y)}{\varepsilon_0}=1~\mathrm{V/m^2},
+\varphi(0,y)=\varphi(L_x,y)=\varphi(x,0)=\varphi(x,L_y)=0,L_x=L_y=1~\mathrm{m}.
+$
+
+\subsection{algorithm description}
+For the Possion equation, we can discretize the equation using finite difference method. The Laplacian operator in two dimensions can be approximated as:
+\begin{equation}
+    \nabla^2 \varphi(x,y) \approx \frac{\varphi_{i+1,j} + \varphi_{i-1,j}+ \varphi_{i,j+1}  + \varphi_{i,j-1}- 4\varphi_{i,j}}{h^2} = -\rho_{i,j}/\epsilon_0
+\end{equation}
+\begin{equation}
+    \varphi_{i,j} = \frac{1}{4} \left( \varphi_{i+1,j} + \varphi_{i-1,j}+ \varphi_{i,j+1}  + \varphi_{i,j-1} + \frac{h^2 \rho_{i,j}}{\epsilon_0} \right)
+\end{equation}
+where $\varphi_{i,j}$ represents the potential at grid point $(i,j)$, the grid spacing is $h$ and can be different for x and y direction.
+
+For the boundary conditions, we set tunable Dirichlet boundary conditions according to the problem description.
+Here in my code, I include Jacobi, SOR and Gauss-Seidel method, just set $\omega = 1$ in SOR for Gauss-Seidel method. 
+For SOR method, The update formula for the potential at each grid point is given by:
+\begin{equation}
+    y_j^{(n+1)} = (1-\omega)y_j^{(n)} + \frac{\omega}{A_{jj}}\left( b_j - \sum_{k < j} A_{jk} y_k^{(n+1)}-\sum_{k > j} A_{jk} y_k^{(n)} \right)
+\end{equation}
+$n$ is the iteration number, A is a positive-definite and symmetric coefficient matrix (here in this case not diagonal dominant matrix), b is the right-hand side vector derived from the charge density $\rho(x,y)$.
+ 
+$\omega$ is the relaxation factor, which can be optimized for faster convergence, should satisfy $0<\omega< 2$ to ensure convergence. Here in code I set $\omega = 1.9 $. And for small $\omega$, convergence is much slower.
+
+\subsection{output}
+run code \texttt{problem1.py} will plot the  distribution of $\varphi(x,y)$
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[width=0.9\textwidth]{pic/case_a_phi.png}
+        \caption{Case A: $\varphi(x,y)$ distribution}
+    \end{minipage}
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[width=0.9\textwidth]{pic/case_b_phi.png}
+        \caption{Case B: $\varphi(x,y)$ distribution}
+    \end{minipage}
+\end{figure}
+
+\section{Problem2:\quad }
+\subsection{problem description}
+Solve the time-dependent Schrödinger equation using both the Crank-Nicolson scheme and stable explicit scheme. Consider the one-dimensional case and test it by applying it to the problem of a square well with a Gaussian initial state coming in from the left.
+
+Hint: Gaussian initial state $\displaystyle \Psi_i(x,0)=\sqrt{\frac{1}{\pi}} \exp(ik_0 x - \frac{(x-\xi_0 )^2}{2})  $
+\subsection{algorithm description}
+The one-dimensional time dependent Schrödinger equation is given by:
+\begin{equation}
+    i \hbar \frac{\partial \Psi_i}{\partial t} = -\frac{\hbar^2}{2m} \frac{\partial^2 \Psi_i}{\partial x^2} + V(x) \Psi_i
+\end{equation}
+Here the square well potential is defined as:
+\begin{equation}
+    V(x) = \begin{cases}
+        V_0, & x < a \text{ or } x > b \\
+        0, & a \leq x \leq b
+    \end{cases}
+\end{equation}
+It can be rearranged as a 1+1 dimensional diffusion equation with imaginary diffusion coefficient, write in Crank-Nicolson scheme:
+\begin{equation}
+    \frac{\Psi_i^{n+1} - \Psi_i^n}{\Delta t} = \frac{i \hbar}{2m} \frac{1}{2} \left( \frac{\Psi_{i+1}^{n+1} - 2\Psi_i^{n+1} + \Psi_{i-1}^{n+1}}{(\Delta x)^2} + \frac{\Psi_{i+1}^{n} - 2\Psi_i^{n} + \Psi_{i-1}^{n}}{(\Delta x)^2} \right) - \frac{i}{\hbar} V_i \frac{\Psi_i^{n+1} + \Psi_i^n}{2}
+\end{equation}
+And in explicit scheme:
+\begin{equation}
+    \frac{\Psi_i^{n+1} - \Psi_i^n}{\Delta t} = \frac{i \hbar}{2m} \frac{\Psi_{i+1}^{n} - 2\Psi_i^{n} + \Psi_{i-1}^{n}}{(\Delta x)^2} - \frac{i}{\hbar} V_i \Psi_i^n
+\end{equation}
+Here $i$ and $n$ are the spatial and time indices, respectively. And the traditional stability condition for the explicit scheme is:
+\begin{equation}
+   r=\frac{\hbar\Delta t }{2m (\Delta x)^2}  \leq \frac{1}{2}
+\end{equation}
+But this need to be verified since the traditional Von-Neumann stability analysis is performed for real coefficients only, may not apply to complex case.
+For Crank-Nicolson scheme, it is unconditionally stable, error is $O( \Delta t^2)$, while for explicit scheme, error is $O( \Delta t)$.
+
+\subsection{output}
+run code \texttt{problem2.py}. Here I set the initial wave packet center out of the potential well, so that we can see the transmission and reflection of the wave packet at walls.
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[width=0.98\textwidth]{pic/cn_snapshots.png}
+        \caption{Crank-Nicolson: snapshots of $|\psi|^2$ at different times}
+    \end{minipage}
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[width=0.98\textwidth]{pic/cn_spacetime.png}
+        \caption{Crank-Nicolson: $|\psi|^2$ space-time}
+    \end{minipage}
+\end{figure}
+The Crank-Nicolson scheme conserves probability well, and the wave packet transmits and reflects at the square well potential as expected.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[width=0.98\textwidth]{pic/explicit_snapshots.png}
+        \caption{Explicit stable: snapshots of $|\psi|^2$ at different times}
+    \end{minipage}
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[width=0.98\textwidth]{pic/explicit_spacetime.png}
+        \caption{Explicit stable: $|\psi|^2$ space-time}
+    \end{minipage}
+\end{figure}
+The stable explicit scheme fails to give the correct transmission and reflection behavior, if initial wave packet center is set inside the well, it will give divergent result. This is because the explicit scheme is not energy conserving, and the error $O(\Delta t)$ is larger than Crank-Nicolson scheme. It can be explained:
+\begin{align}
+    \Psi_i^{n+1} & = \Psi_i^n + \Delta t \left( \frac{i \hbar}{2m} \frac{\partial^2 \Psi_i}{\partial x^2} - \frac{i}{\hbar} V(x) \Psi_i \right) \\
+    & = \Psi_i^n + ir\left(\Psi_{i+1}^{n} - 2\Psi_i^{n} + \Psi_{i-1}^{n}\right) \\
+    & = \Psi_i^n \left[ 1+ i2r(\cos(K\Delta x) -1)\right] \quad \text{Von-Neumann analysis}
+\end{align}
+The magnitude of the term in the bracket 
+\begin{equation}
+    |1+ i2r(\cos(K\Delta x) -1)| = \sqrt{1 + 4r^2(\cos(K\Delta x) -1)^2} > 1
+\end{equation}
+ which means the energy is not conserved, and the wave function magnitude will diverge over time.
+
+\section{Problem3:\quad  }
+\subsection{problem description}
+Prove the stability condition of the explicit scheme of the 1D wave equation by performing Von Neumann stability analysis.
+$\frac{\partial^2 u}{\partial t^2} = c^2 \frac{\partial^2 u}{\partial x^2} $ , if $\frac{c \Delta t}{\Delta x} \leq 1,$ then
+the explicit scheme is stable.
+\subsection{proof}
+
+The explicit finite difference scheme for the 1D wave equation is given by:
+\begin{equation}
+    u_i^{n+1} - 2u_i^n + u_i^{n-1} = \left( \frac{c \Delta t}{\Delta x} \right)^2 (u_{i+1}^n - 2u_i^n + u_{i-1}^n)
+\end{equation}
+Here $i$ and $n$ are the spatial and time indices, respectively.
+ Assume a solution of the form (Von Neumann ansatz):
+\begin{equation}
+    u_i^n = G^n e^{i k i \Delta x}
+\end{equation}
+Substituting this assumed solution into the finite difference scheme, we get:
+\begin{equation}
+    G+\frac{1}{G}-2 = \left( \frac{c \Delta t}{\Delta x} \right)^2 (2\cos(k\Delta x) - 2)
+\end{equation}
+solution of G:
+\begin{equation}
+    G = 1 - 2r^2 \sin^2\left(\frac{k \Delta x}{2}\right) \pm 2r \sin\left(\frac{k \Delta x}{2}\right) \sqrt{r^2 \sin^2\left(\frac{k \Delta x}{2}\right) - 1}
+\end{equation}
+where $r = \frac{c \Delta t}{\Delta x}$. if $r \leq 1$, then $|G| = 1$ all the time, which can be seen as follows:
+\begin{equation}
+    G^2 - \beta G + 1 = 0 , (\beta \leq 2)
+\end{equation}
+The roots of this equation are complex conjugates with magnitude $|G| = 1$, indicating stability of explicit scheme. It's actually the requirement of energy conservation in the wave equation.
+
+\end{document}

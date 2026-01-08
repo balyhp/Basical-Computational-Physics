@@ -1,0 +1,219 @@
+\documentclass[12pt,a4paper]{article}
+%\usepackage{ctex}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage[english]{babel}
+
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    numbersep=5pt,
+    frame=single,
+    breaklines=true,
+    backgroundcolor=\color{white},
+    tabsize=4,
+    captionpos=b
+}
+
+\title{Homework2}
+\author{Zric \qquad 23307110123}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\section{Problem1:\quad Find roots}
+\subsection{Problem description}
+Sketch the function $f(x)=x^3-5x+3=0$.
+
+(1)Determine the two positive roots to 4 decimal places using the bisection method. Note: You first need to bracket each of the roots.
+
+(2)Take the two roots that you found in the previous question (accurate to 4 decimal places) and “polish them up” to 14 decimal places using the Newton-Raphson method.
+
+(3)Determine the two positive roots to 14 decimal places using the hybrid method.
+
+\subsection{Algorithm description}
+(1)For the first question, we first need to bracket each of the roots by taking sample points $x_1,x_2 ..$ of $f(x)$, comparing the signs between $f(x_i)$ to identify the possible region of each root.
+For an order-3 equation , there is at most only 3 real roots. And we have 
+\begin{equation}
+    f(-3)=-9 \quad f (0) = 3  \quad f(1)=-1 \quad f(2)= 1
+\end{equation}
+Using continuity of function $f(x)=x^3-5x+3$, we can identify that the 3 roots lies in $[-3,0],[0,1],[1,2]$ separately.To find the 2 positive roots, we will first search separately in interval $[0,1]$ and $[1,2]$ using bisection method, the break condition of the iteration is that $|high-low| < 1\times 10^{-4} $ , $high$ denotes the upper bound in interval $[low,high]$, $low$ the lower bound.  
+
+(2) For the second question, we will use the answer from (1) as the start point $x_0$ of Newton-Raphson method, and iteration will not stop until $|x_{k+1}-x_{k}|< 1\times 10^{-14}$,the relation between $x_k,x_{k+1}$ can be written as:
+\begin{equation}
+    x_{k+1} = x_k - \frac{f(x_k)}{f'(x_k)}
+\end{equation}
+(3)For the third question, we use the hybrid method, combining both N-R method and bisection method in searching roots, this method avoid some intrinsic problem of N-R method so it's more robust, for example, N-R method is invalid at $f'(x)=0$, but here in hybrid method this problem can be avoided by switching on bisection method, the algorithm flowchart is shown below:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.9\linewidth]{pic/hybrid.png}
+    \caption{algorithm flowchart of hybrid method}
+\end{figure}
+
+\subsection{Output}
+run code \texttt{problem1.py} in terminal:
+\begin{figure}[H]
+    \centering
+    \includegraphics{pic/q1.png}
+    \caption{output of 3 methods}
+\end{figure}
+Here iters denotes the number of iteration steps, [0,1],[1,2] means the 2 intervals of 2 positive roots. As can be seen from above, the strategy of first determining roots to 4-dp accuracy and then improving accuracy to 14-dp (total iters = 16 here) takes less iteration steps than the hybrid method(iters = 71 and 56).
+
+\section{Problem2:\quad Find minimum}
+\subsection{problem description}
+Search for the minimum of the function $g (x,y)=\sin(x+y)+\cos(x+2y) $ in the whole 2D-space, $(x,y) \in R$.
+
+Clearly $g_{min}=-2$, and is reached when $x= m\pi ,y = \frac{2n+1}{2}\pi$ with $m+n$ being odd.
+
+\subsection{algorithm description}
+Here I use steepest-descent method to find  the minimum of $g(x,y)$ from different initial guess points.This method updates $(x,y)$ in the opposite direction of gradient of $g(x,y)$ ,the algorithm is showm below:
+\begin{equation}
+    x_{k+1}=x_k - a\cdot \nabla g(x_k)
+\end{equation}  
+here $x_k$ can represent high dimensional vector: $x_k = (x_1,x_2,..,x_n)_k$,$k$ means iteration step index. $a$ denotes the step length, and it's variable during the iteration. The explanation is given below:
+
+\begin{lstlisting}[language={}, frame=lines]
+Inputs:
+  f(x): objective function
+  g(x): gradient of f
+  x0:   initial point
+  tol:  tolerance for convergence
+  lr:   initial learning rate (step length)
+  min_lr: minimal allowed step length
+  p in (0,1): shrink factor for backtracking, e.g., 0.5
+  e > 1: gentle enlarge factor for next round (optional), e.g. 1.5
+
+Algorithm:
+1. x = x0
+   f0 = f(x)
+   k = 0
+   cur_lr = lr
+
+2. main loop:
+   2.1 gk = g(x)
+       if |gk|^2 < tol:
+            return (x, f0, k)
+
+   2.2 d = -gk                 # steepest descent direction
+
+   2.3 (Backtracking line search)
+       decreased = false
+       a = cur_lr
+       while a > min_lr:
+           x_try = x + a d
+           f_try = f(x_try)
+           if f_try < f0:       # sufficient decrease (simple check)
+               decreased ← true
+               break
+           a = p·a            # shrink step (p in (0,1))
+       if decreased = false:
+           return (x, f0, k)    # step too small and no decrease -> consider converged
+
+   2.4 dx = |x_try - x|
+       df = |f_try - f0|
+
+   2.5 x = x_try
+       f0 = f_try
+       k = k + 1
+
+   2.6 if dx < tol or df < tol:
+           return (x, f0, k)
+
+   2.7 cur_lr = min(e·a, lr) # gently enlarge base step for next round
+\end{lstlisting}
+
+\subsection{Output}
+run code \texttt{problem2.py}, you can set different start point as well as learning-rate.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.98\linewidth]{pic/q2.png}
+    \caption{steepest-descent method output}    
+\end{figure}
+As can be seen , different initial points can lead to different final points, but the minimum value of $g(x,y)$ is the same. Generally, smaller lr means more iteration steps.
+
+
+\section{Problem3:\quad Find eigen-states }
+\subsection{Problem description}
+Electron in the finite square-well potential is:
+$$
+V(x) = 
+\begin{cases}
+V_0 & x \leq -a \quad \text{Region I} \\
+0   & -a < x < a \quad \text{Region II} \\
+V_0 & x \geq a \quad \text{Region III}
+\end{cases}
+\qquad V_0 = 10\,\text{eV},\; a = 0.2\,\text{nm}
+$$
+Find all the lowest eigen states (both energies and wavefunctions).
+
+\subsection{Algorithm description}
+If energy $0<E < V_0$, the wave function has the following forms:
+\begin{equation}
+    \begin{cases}
+        \psi_I(x) = A e^{\kappa x}, \quad x < -a, \quad 
+\kappa = \sqrt{\tfrac{2m(V_0 - E)}{\hbar^2}},\\
+\psi_{II}(x) = B \sin(kx) + C \cos(kx), \quad -a < x < a, \quad
+k = \sqrt{\tfrac{2mE}{\hbar^2}},\\
+\psi_{III}(x) = D e^{-\kappa x}, \quad x > a.
+    \end{cases}
+\end{equation}
+There are four coefficients $A,B,C,D$. Continuity of the wave function and its derivative at $x = \pm a$ give boundary conditions:
+\begin{equation}
+\psi_I(-a) = \psi_{II}(-a), \quad 
+\psi_I'(-a) = \psi_{II}'(-a),
+\end{equation}
+\begin{equation}
+\psi_{II}(a) = \psi_{III}(a), \quad
+\psi_{II}'(a) = \psi_{III}'(a).
+\end{equation}
+In addition, the normalization condition is
+\begin{equation}
+\int_{-\infty}^{\infty} |\psi(x)|^2 \, dx = 1.
+\end{equation}
+This gives five equations to determine $A,B,C,D$ and $E$.From (5)(6), we can get:
+\begin{equation}
+    \begin{cases}
+        (\frac{k}{\kappa}-\tan(ka))B+ (\frac{k}{\kappa}\tan(ka)+1)C=0 \\
+        (\frac{k}{\kappa}+\tan(ka))B+ (-\frac{k}{\kappa}\tan(ka)+1)C=0
+    \end{cases}
+\end{equation}
+In order that B,C has nontrivial soltions,det = 0 for the coefficients, we can thus simplify the question as two independent equations (corresponding to the two cases of odd functions and even functions) and solve them separately:
+\begin{equation}
+    \begin{cases}
+        k \tan(ka) = \kappa \quad \text{even} \\
+        k \cot(ka) = -\kappa \quad \text{odd}
+    \end{cases}
+\end{equation}
+These transcendental equations determine the allowed bound-state energies $E$, and $A,B,C,D$ can then be determined once $E$ is defined.
+
+To solve the equation(9), I adopt bisection method, and to avoid singularity points $\frac{(n+1)\pi}{2} ,n\in Z $, at which $\tan(x), cot(x) \rightarrow 0 \text{ or } \infty $, here I devide the positive number interval into open intervals $(\frac{n\pi}{2},\frac{(n+1)\pi}{2}),n \in Z^+$ for bisection method to search in so that the singularity points are excluded.
+
+\subsection{Output}
+run code \texttt{problem3.py}:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.98\linewidth]{pic/q3.png}
+    \caption{output of 3 eigenstates}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.98\linewidth]{pic/answer.png}
+    \caption{wavefunction}
+\end{figure}
+From Figure 4 and Figure 5, we can see that for given parameter $V_0=10$eV, $a=0.2$nm, there are 3 bounded eigenstates in the well.
+The coefficients $A,B,C,D$ of eigen-functions in equation(4) are given as well.
+\end{document}

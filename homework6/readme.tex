@@ -1,0 +1,141 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{ctex}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage[english]{babel}
+
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    numbersep=5pt,
+    frame=single,
+    breaklines=true,
+    backgroundcolor=\color{white},
+    tabsize=4,
+    captionpos=b
+}
+
+\title{Homework6}
+\author{袁健 \qquad 23307110123}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\section{Problem1:\quad1D Kronig-Penney model}
+\subsection{problem description}
+One-dimensional Kronig-Penney problem:
+\begin{equation}
+-\frac{\hbar^2}{2m}\frac{d^2}{dx^2}\psi(x) + V(x)\psi(x) = E\psi(x), \qquad V(x) = V(x+a)
+\end{equation}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{pic/p1.png}
+    \caption{Kronig-Penney potential}
+\end{figure}
+Using FFT, find the lowest three eigenvalues of the electric eigenstates that satisfy
+\begin{equation}
+ \hat{H}\psi_k(x) = E_k\psi_k(x), \qquad \psi_k(x+a) = \psi_k(x)
+\end{equation}
+
+\subsection{algorithm description}
+Since here we request that $\psi_k(x+a) = \psi_k(x)$ and from Bloch theorem, we have 
+\begin{equation}
+\psi_k(x+a) = e^{ika}\psi_k(x)
+\end{equation}
+which means that $k=0$, so the eigenvalues we need to compute here are actually from the 3 lowest bands at $\Gamma$ point.
+
+To solve this problem with FFT, we first discretize fouier transform the periodical potential operator $V(x)$ and $\psi(x)$ in the real space with $N$ grid points in one period $[0,a]$.
+\begin{equation}
+    \psi(x)=\sum_{n=0}^{N-1}c_n e^{i\frac{2\pi n}{a}x},\qquad V(x)=\sum_{m=0}^{N-1}V_m e^{i\frac{2\pi m}{a}x}, \qquad x=\frac{ja}{N},\quad (j=0,1..N-1)
+\end{equation}
+$c_n$ are N unknown coefficients to be determined, while $V_m$ can be calculated with FFT from $V(x)$.
+Then we can rewrite equation(1):
+\begin{equation}
+-\frac{\hbar^2}{2m}\sum_{n=0}^{N-1}c_n \left(i\frac{2\pi n}{a}\right)^2 e^{i\frac{2\pi n}{a}x} + \left(\sum_{m=0}^{N-1}V_m e^{i\frac{2\pi m}{a}x}\right)\left(\sum_{n=0}^{N-1}c_n e^{i\frac{2\pi n}{a}x}\right) = E\sum_{n=0}^{N-1}c_n e^{i\frac{2\pi n}{a}x}
+\end{equation}
+multiply $\displaystyle e^{-i\frac{2\pi k}{a}x},\quad k=0,1..N-1$ on left and sum over $x$ from $0$ to $a$ (the N grid-points),
+\begin{equation}
+    \frac{1}{N}\sum_x e^{-i\frac{2\pi k}{a}x}e^{i\frac{2\pi n}{a}x} = \delta_{k,n}, \qquad x=\frac{ja}{N},\quad (j=0,1..N-1)
+\end{equation}
+we have N equations:
+\begin{equation}
+-\frac{\hbar^2}{2m}c_k \left(i\frac{2\pi k}{a}\right)^2 + \sum_{m+n=k}V_m c_n = E c_k
+\end{equation}
+
+To solve out non-trivial solution of $c_n$, the determinant of the coefficient matrix should be zero(which can be viewed as a N-order function $f(E)$), thus we can get N eigenvalues of $E$ by solving the equation $f(E)=0$.
+
+Here in my code I use $\psi_k(x)$ instead because I want to see the band structure at different $k$ points. I use truncated plane wave basis set to represent the Hamiltonian operator $\hat{H}$ in matrix form, then directly diagonalize the Hamiltonian matrix to get the eigenvalues.
+\begin{equation}
+    \psi_k(x) = \sum_{m=-M}^{M}c_m \phi_m, \qquad N=2M+1, \quad \phi_m = \frac{1}{\sqrt{a}}e^{i(\frac{2\pi m}{a}+k)x}
+\end{equation}
+\begin{equation}
+    HC=ESC \qquad H_{ij} = \langle \phi_i|\hat{H}|\phi_j \rangle, \quad S_{ij}=\langle \phi_i|\phi_j \rangle, \quad C=[c_1,c_2,..,c_N]^T
+\end{equation}
+It's actually the same as equation(7)
+\subsection{output}
+run \texttt{problem1.py}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{pic/p1answer.png}
+    \caption{output}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{pic/p1_band.png}
+    \caption{Band Structure of Kronig-Penney Model}
+\end{figure}
+
+\section{Problem2:\quad Detecting periodicity}
+\subsection{problem description}
+Download the file called sunspots.txt , which contains the observed number of sunspots on the Sun for each month since January 1749.
+
+Write a program to calculate the Fourier transform of the sunspot data and then make a graph of the magnitude squared $|c_k|^2$ of the Fourier coefficients as a function of $k$ ,also called the power spectrum of the sunspot signal. You should see that there is a noticeable peak in the power spectrum at a nonzero value of $k$
+. Find the approximate value of $k$ to which the peak corresponds. What is the period of the sine wave with this value of $k$?
+
+\subsection{algorithm description}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{pic/month-sunspots.png}
+    \caption{Sunspot Data}
+\end{figure}
+First, we need to cut off the mean value of the sunspot data to eliminate the DC component in the Fourier transform, otherwise the DC component ( $k=0$ contribution ) will be too large and cover other frequency components.
+\begin{equation}
+    x_n' = x_n - \frac{1}{N}\sum_{n=0}^{N-1}x_n, \quad n=0,1,..,N-1
+\end{equation}
+Then we can fill the data with zero to increase to $2^k$ sample points for FFT convenience, this procedure has no effect on the frequency result.
+\begin{equation}
+    x': [0,1,..,N] \rightarrow [0,1,..,N,0,0,..,0] \quad (total\ length=2^k)
+\end{equation}
+Finally, directly use FFT to calculate the Fourier coefficients $c_k$ of the sunspot data.
+\begin{equation}
+    c_k = \frac{1}{L}\sum_{n=0}^{L-1}x_n' e^{-i\frac{2\pi}{L}kn}, \quad k=0,1,..,L-1, \quad L=2^k
+\end{equation}
+\subsection{output}
+run \texttt{problem2.py}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{pic/p2.png}
+    \caption{output}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{pic/spectrum.png}
+    \caption{Power Spectrum of Sunspot Data}
+\end{figure}
+Here $L=4096, k_{peak}=31$, $T=L/k_{peak}\approx 132.13$ months $\approx 11.01$ years. Referring to historical data, the solar cycle is about 11 years, which is consistent with our calculation.
+\end{document}
