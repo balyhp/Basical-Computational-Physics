@@ -1,0 +1,88 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage[english]{babel}
+
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    numbersep=5pt,
+    frame=single,
+    breaklines=true,
+    backgroundcolor=\color{white},
+    tabsize=4,
+    captionpos=b
+}
+
+\title{How to use git}
+\author{Zric}
+\date{\today}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+This document provides a brief introduction to using Git, for new leaners. It covers basic commands and setup instructions to help users get started with Git for version control in their projects. I also include some of my personal tips for privacy protection when using GitHub if you don't want to expose your personal information.
+\end{abstract}
+
+\tableofcontents
+
+
+\section{Introduction}
+Git is a distributed version control system that allows multiple people to work on a project simultaneously without interfering with each other's changes. It is widely used in software development for tracking changes in source code during software development.
+
+\section{Basic Git Knowledge}
+\subsection{Installation}
+For windows users, download the installer from https://git-scm.com/download/win and follow the installation instructions. For macOS users, you can install Git using Homebrew with the command:
+\begin{lstlisting}[language=bash, caption=Installing Git on macOS]
+brew install git
+\end{lstlisting}
+If successful, you can check the installed Git version with in the command:
+\begin{lstlisting}[language=bash, caption=Checking Git Version]
+git --version
+\end{lstlisting}
+
+
+\subsection{Setting up Git}
+Commands to set up Git on your local machine:
+\begin{lstlisting}[language=bash, caption=Setting up Git]
+git config --global user.name "Your Name"
+git config --global user.email "Your email"
+\end{lstlisting}
+For my personal setup, becasue I don't want others to know who I am, I first use my private email to sign up a GitHub account, then set my email private in GitHub settings, GitHub will then give you a no-reply email address to commit  (you can find it in the email settings page), usually like this:
+\begin{lstlisting}[language=bash, caption=GitHub no-reply email example]
+ID+username@users.noreply.github.com
+\end{lstlisting}
+This is accutally not a real email address, but GitHub will recognize it when you commit through Git and link the commit to your "fake" account. If you unfortunately exposed your real email address in previous commits in one repository and want to hide your real email address, you can use the following command to rewrite the commit history:
+\begin{lstlisting}[language=bash, caption=Rewriting commit history to hide email]
+git filter-branch -f --env-filter '
+    GIT_AUTHOR_NAME=$(git config user.name)
+    GIT_AUTHOR_EMAIL=$(git config user.email)
+    GIT_COMMITTER_NAME=$(git config user.name)
+    GIT_COMMITTER_EMAIL=$(git config user.email)
+' -- --all
+\end{lstlisting}
+
+\subsection{Pull and Push}
+To clone a repository from GitHub to your local machine, use the command:
+\begin{lstlisting}[language=bash, caption=Cloning a repository]
+git clone name_of_repository
+\end{lstlisting}
+To pull the latest changes from the remote repository to your local repository, use:
+\begin{lstlisting}[language=bash, caption=Pulling changes from remote repository]
+git pull origin branch_name
+\end{lstlisting}
+
+\end{document}
