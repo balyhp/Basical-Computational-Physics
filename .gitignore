@@ -1,17 +1,5 @@
 // filepath: .gitignore
-# Compiled Object files
-*.o
-*.mod
-
-# LaTeX auxiliary files
-*.aux
-*.log
-*.out
-*.synctex.gz
-*.fls
-*.fdb_latexmk
-
-# Compiled Object files
+# Compiled Object files (Fortran/C/C++)
 *.o
 *.mod
 *.exe
@@ -23,5 +11,9 @@
 *.synctex.gz
 *.fls
 *.fdb_latexmk
+*.toc
+*.nav
+*.snm
 
+# VS Code
 .vscode/
