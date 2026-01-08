@@ -1,0 +1,1 @@
+This repository contains my homework (codes + report) and cheat papers for the course `Basical Computational Physics` , taught by teacher ChangSong Xu. Hopefully it can help your learning in computational physics.
