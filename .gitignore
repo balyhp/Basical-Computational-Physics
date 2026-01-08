@@ -1,0 +1,27 @@
+// filepath: .gitignore
+# Compiled Object files
+*.o
+*.mod
+
+# LaTeX auxiliary files
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# Compiled Object files
+*.o
+*.mod
+*.exe
+
+# LaTeX auxiliary files
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+.vscode/
